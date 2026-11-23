@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    <title>AI Assistant component (beta) | Sample | ArcGIS Maps SDK for JavaScript</title>
+    <!-- Load the ArcGIS Maps SDK for JavaScript from CDN -->
+    <script type="module" src="https://js.arcgis.com/5.2/"></script>
+    <style>
+      #code-dialog {
+        /* --calcite-dialog-min-size-x: min(300px, calc(100vw - 3rem));
+        --calcite-dialog-max-size-x: min(300px, calc(100vw - 3rem));
+        --calcite-dialog-min-size-y: min(400px, calc(100vh - 3rem));
+        --calcite-dialog-max-size-y: min(400px, calc(100vh - 3rem)); */
+      }
+    </style>
+  </head>
+
+  <body>
+    <p id="auth-status" role="status">Connecting to ArcGIS Online...</p>
+    <button id="retry-sign-in" type="button" hidden>Retry sign-in</button>
+
+    <template id="app-template">
+      <calcite-shell>
+         <calcite-dialog modal fullscreen-disabled heading="Assistant and Agents" id="code-dialog" width="l" slot="dialogs">
+          
+                    <arcgis-code-editor id="value-picker-snippets" language="html" 
+                    value=' <arcgis-assistant>
+  <arcgis-assistant-navigation-agent></arcgis-assistant-navigation-agent>
+  <arcgis-assistant-data-exploration-agent></arcgis-assistant-data-exploration-agent>
+  <arcgis-assistant-help-agent></arcgis-assistant-help-agent>
+</arcgis-assistant>  '>
+                  </arcgis-code-editor>    
+
+        </calcite-dialog> 
+        <arcgis-map id="zpl-map" item-id="617e7ab0f3894c7493d09277ecd5c908">
+          <arcgis-zoom slot="top-left"></arcgis-zoom>
+          <arcgis-expand slot="top-left">
+            <arcgis-legend ></arcgis-legend>            
+          </arcgis-expand>
+          <arcgis-expand slot="top-left">
+            <arcgis-layer-list ></arcgis-layer-list>
+          </arcgis-expand>          
+          <calcite-button id="toggle-code-dialog" slot="top-left">Show code</calcite-button>
+        </arcgis-map>
+        <calcite-shell-panel slot="panel-end" width="l" id="assistant-panel">
+          <calcite-panel>
+            <arcgis-assistant
+              log-enabled
+              copy-enabled
+              reference-element="#zpl-map"
+              heading="Bauzonen und Liegenschaften der Stadt ZH"
+              description="Bauzonen analysieren"
+              entry-message="Hallo, ich kann helfen die Zonen aufzufinden und zu vergleichen"
+            >
+              <arcgis-assistant-navigation-agent></arcgis-assistant-navigation-agent>
+              <arcgis-assistant-data-exploration-agent></arcgis-assistant-data-exploration-agent>
+              <arcgis-assistant-help-agent></arcgis-assistant-help-agent>
+            </arcgis-assistant>
+           
+          </calcite-panel>
+        </calcite-shell-panel>
+      </calcite-shell>
+    </template>
+
+    <script type="module">
+      const status = document.querySelector("#auth-status");
+      const retryButton = document.querySelector("#retry-sign-in");
+      const redirectKey = "arcgis-assistant-oauth-pending";
+
+      function toggleDialog() {
+        const dialog = document.querySelector("#code-dialog");
+        dialog.open = !dialog.open;
+      }
+
+      function showError(message, error) {
+        console.error(message, error);
+        status.textContent = message;
+        status.setAttribute("role", "alert");
+        retryButton.hidden = false;
+      }
+
+      try {
+        const [OAuthInfo, identityManager] = await $arcgis.import([
+          "@arcgis/core/identity/OAuthInfo.js",
+          "@arcgis/core/identity/IdentityManager.js",
+        ]);
+        const info = new OAuthInfo({
+          appId: "eu2IMaR34FDD3NkT",
+          portalUrl: "https://www.arcgis.com",
+          authNamespace: "arcgis-assistant-vanilla",
+          popup: false,
+        });
+        const sharingUrl = `${info.portalUrl}/sharing`;
+        identityManager.registerOAuthInfos([info]);
+
+        function showApp() {
+          sessionStorage.removeItem(redirectKey);
+          status.remove();
+          retryButton.remove();
+          document.body.append(document.querySelector("#app-template").content.cloneNode(true));
+          document.querySelector("#toggle-code-dialog").addEventListener("click", toggleDialog);
+          document.querySelector("arcgis-assistant").suggestedPrompts = [
+            "Gib mir eine Liste von vorhandenen Zonen zusammen mit ihrer Bezeichnung?",
+            "Wie gross ist die Fläche von allen Freihaltezonen?",
+            "How many counties produced less wheat in 2022 than in 2017?",
+          ];
+        }
+
+        async function signIn() {
+          retryButton.hidden = true;
+          status.setAttribute("role", "status");
+          status.textContent = "Connecting to ArcGIS Online...";
+          try {
+            sessionStorage.setItem(redirectKey, "1");
+            await identityManager.getCredential(sharingUrl);
+            showApp();
+          } catch (error) {
+            sessionStorage.removeItem(redirectKey);
+            showError("ArcGIS sign-in failed. Check the browser console and retry.", error);
+          }
+        }
+
+        retryButton.addEventListener("click", signIn);
+        try {
+          await identityManager.checkSignInStatus(sharingUrl);
+          showApp();
+        } catch (error) {
+          if (sessionStorage.getItem(redirectKey)) {
+            sessionStorage.removeItem(redirectKey);
+            showError("ArcGIS sign-in did not complete. Check the redirect URI and retry.", error);
+          } else {
+            await signIn();
+          }
+        }
+      } catch (error) {
+        showError("Could not initialize ArcGIS sign-in. Reload the page to retry.", error);
+        retryButton.hidden = true;
+      }
+    </script>
+  </body>
+</html>

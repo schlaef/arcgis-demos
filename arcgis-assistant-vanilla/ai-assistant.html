@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
-    <title>AI Assistant component (beta) | Sample | ArcGIS Maps SDK for JavaScript</title>
+    <title>Arcgis Assistant component </title>
     <!-- Load the ArcGIS Maps SDK for JavaScript from CDN -->
     <script type="module" src="https://js.arcgis.com/5.2/"></script>
     <style>
@@ -38,10 +38,10 @@
          id="code-dialog" width="m" slot="dialogs">
           
                     <arcgis-code-editor style="padding: 5px;" id="value-picker-snippets" language="html" 
-                    value=' <arcgis-assistant>
-  <arcgis-assistant-navigation-agent></arcgis-assistant-navigation-agent>
-  <arcgis-assistant-data-exploration-agent></arcgis-assistant-data-exploration-agent>
-  <arcgis-assistant-help-agent></arcgis-assistant-help-agent>
+                    value='<arcgis-assistant>
+    <arcgis-assistant-navigation-agent/>
+    <arcgis-assistant-data-exploration-agent/>
+    <arcgis-assistant-help-agent/>
 </arcgis-assistant>  '>
                   </arcgis-code-editor>    
 
@@ -56,6 +56,11 @@
           </arcgis-expand>          
           <calcite-button id="toggle-code-dialog" icon-start="code" appearance="outline-fill" slot="top-left"></calcite-button>
         </arcgis-map>
+        <arcgis-feature-table style="height: 300px;" layer-url="https://services.arcgis.com/h4GV7Mzy9qkszeGb/arcgis/rest/services/Bzo_Zh_Poly/FeatureServer"
+          reference-element="zpl-map"
+          show-layer-dropdown          
+          hide-selection-column
+        ></arcgis-feature-table>
         <calcite-shell-panel slot="panel-end" width="l" id="assistant-panel">
           <calcite-panel>
             <arcgis-assistant
@@ -66,9 +71,9 @@
               description="Bauzonen analysieren"
               entry-message="Hallo, ich kann helfen die Zonen aufzufinden und zu vergleichen"
             >
-              <arcgis-assistant-navigation-agent></arcgis-assistant-navigation-agent>
-              <arcgis-assistant-data-exploration-agent></arcgis-assistant-data-exploration-agent>
-              <arcgis-assistant-help-agent></arcgis-assistant-help-agent>
+              <arcgis-assistant-navigation-agent/>
+              <arcgis-assistant-data-exploration-agent/>
+              <arcgis-assistant-help-agent/>
             </arcgis-assistant>
            
           </calcite-panel>
@@ -120,8 +125,8 @@
             };
           });
           document.querySelector("arcgis-assistant").suggestedPrompts = [
-            "Gib mir eine Liste von vorhandenen Zonen zusammen mit ihrer Bezeichnung?",
-            "Wie gross ist die Fläche von allen Freihaltezonen?",
+            "Gib mir eine Liste von vorhandenen Zonen zusammen mit ihrer Bezeichnung",
+            "Wie gross ist die Fläche von allen Freihaltezonen",
             "In welcher Zone liegt die Liegenschaft an der Josefstrasse 218?",
           ];
         }

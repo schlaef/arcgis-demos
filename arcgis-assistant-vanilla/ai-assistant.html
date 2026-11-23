@@ -8,10 +8,22 @@
     <script type="module" src="https://js.arcgis.com/5.2/"></script>
     <style>
       #code-dialog {
+        padding:5px;
         /* --calcite-dialog-min-size-x: min(300px, calc(100vw - 3rem));
         --calcite-dialog-max-size-x: min(300px, calc(100vw - 3rem));
         --calcite-dialog-min-size-y: min(400px, calc(100vh - 3rem));
         --calcite-dialog-max-size-y: min(400px, calc(100vh - 3rem)); */
+      }
+
+      #value-picker-snippets {
+        box-sizing: border-box;
+        height: min(10rem, calc(100vh - 7rem));
+      }
+
+      @media (max-width: 600px) {
+        #value-picker-snippets {
+          height: min(20rem, calc(100vh - 7rem));
+        }
       }
     </style>
   </head>
@@ -22,9 +34,10 @@
 
     <template id="app-template">
       <calcite-shell>
-         <calcite-dialog modal fullscreen-disabled heading="Assistant and Agents" id="code-dialog" width="l" slot="dialogs">
+         <calcite-dialog modal fullscreen-disabled heading="Assistant and Agents" 
+         id="code-dialog" width="m" slot="dialogs">
           
-                    <arcgis-code-editor id="value-picker-snippets" language="html" 
+                    <arcgis-code-editor style="padding: 5px;" id="value-picker-snippets" language="html" 
                     value=' <arcgis-assistant>
   <arcgis-assistant-navigation-agent></arcgis-assistant-navigation-agent>
   <arcgis-assistant-data-exploration-agent></arcgis-assistant-data-exploration-agent>
@@ -41,7 +54,7 @@
           <arcgis-expand slot="top-left">
             <arcgis-layer-list ></arcgis-layer-list>
           </arcgis-expand>          
-          <calcite-button id="toggle-code-dialog" slot="top-left">Show code</calcite-button>
+          <calcite-button id="toggle-code-dialog" icon-start="code" appearance="outline-fill" slot="top-left"></calcite-button>
         </arcgis-map>
         <calcite-shell-panel slot="panel-end" width="l" id="assistant-panel">
           <calcite-panel>
@@ -100,10 +113,16 @@
           retryButton.remove();
           document.body.append(document.querySelector("#app-template").content.cloneNode(true));
           document.querySelector("#toggle-code-dialog").addEventListener("click", toggleDialog);
+          customElements.whenDefined("arcgis-code-editor").then(() => {
+            document.querySelector("#value-picker-snippets").editorOptions = {
+              wordWrap: "on",
+              scrollBeyondLastLine: false,
+            };
+          });
           document.querySelector("arcgis-assistant").suggestedPrompts = [
             "Gib mir eine Liste von vorhandenen Zonen zusammen mit ihrer Bezeichnung?",
             "Wie gross ist die Fläche von allen Freihaltezonen?",
-            "How many counties produced less wheat in 2022 than in 2017?",
+            "In welcher Zone liegt die Liegenschaft an der Josefstrasse 218?",
           ];
         }
 

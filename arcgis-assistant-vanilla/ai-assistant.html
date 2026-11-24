@@ -55,19 +55,25 @@
             <arcgis-layer-list ></arcgis-layer-list>
           </arcgis-expand>          
           <calcite-button id="toggle-code-dialog" icon-start="code" appearance="outline-fill" slot="top-left"></calcite-button>
-          <calcite-button id="toggle-coldesc" icon-start="table" appearance="outline-fill" slot="top-left" ></calcite-button>
+          <calcite-button id="reset-symbology" icon-start="reset" appearance="outline-fill" slot="top-left" disabled></calcite-button>
         </arcgis-map>
-        <arcgis-feature-table id="ftable" style="height: 450px;"           
+        <arcgis-feature-table id="ftable" style="height: 450px;"
           map-layer-id = "1a1f4b90958-layer-42"
           reference-element="zpl-map"
-          show-layer-dropdown          
+          show-layer-dropdown
           hide-selection-column
           hide-column-descriptions
+          hide-column-visibility-menu
         ></arcgis-feature-table>
         <calcite-shell-panel slot="panel-end" width="l" id="assistant-panel">
           <calcite-panel>
+            <calcite-notice id="symbology-error" kind="danger" icon>
+              <div slot="message">Die Originaldarstellung konnte nicht vorbereitet werden. Bitte die Seite neu laden.</div>
+            </calcite-notice>
             <arcgis-assistant
-              log-enabled              
+              log-enabled   
+              keep-suggested-prompts  
+              user-avatar-enabled         
               reference-element="#zpl-map"
               heading="Bauzonen und Liegenschaften der Stadt ZH"
               description="Bauzonen analysieren"
@@ -125,8 +131,39 @@
           retryButton.remove();
           document.body.append(document.querySelector("#app-template").content.cloneNode(true));
           document.querySelector("#toggle-code-dialog").addEventListener("click", toggleDialog);
-          document.querySelector("#toggle-coldesc")
-  .addEventListener("click", toggleColdesc);
+          customElements.whenDefined("arcgis-feature-table").then(() => {
+            document.querySelector("#ftable").menuConfig = {
+              items: [{
+                label: "Spaltenbeschreibungen ein-/ausblenden",
+                icon: "table",
+                clickFunction: toggleColdesc,
+              }],
+            };
+          });
+
+          const mapElement = document.querySelector("#zpl-map");
+          const resetButton = document.querySelector("#reset-symbology");
+          customElements.whenDefined("arcgis-map").then(async () => {
+            await mapElement.viewOnReady();
+            const originalEffects = await Promise.all(
+              mapElement.map.allLayers
+                .filter((layer) => layer.type === "feature")
+                .toArray()
+                .map(async (layer) => {
+                  await layer.load();
+                  return { layer, featureEffect: layer.featureEffect?.clone() ?? null };
+                }),
+            );
+            resetButton.addEventListener("click", () => {
+              for (const { layer, featureEffect } of originalEffects) {
+                layer.featureEffect = featureEffect?.clone() ?? null;
+              }
+            });
+            resetButton.disabled = false;
+          }).catch((error) => {
+            console.error("Could not prepare original layer effects.", error);
+            document.querySelector("#symbology-error").open = true;
+          });
           
           customElements.whenDefined("arcgis-code-editor").then(() => {
             document.querySelector("#value-picker-snippets").editorOptions = {
@@ -135,9 +172,9 @@
             };
           });
           document.querySelector("arcgis-assistant").suggestedPrompts = [
-            "Gib mir eine Liste von vorhandenen Zonen zusammen mit ihrer Bezeichnung",
-            "Wie gross ist die Fläche von allen Freihaltezonen?",
-            "In welcher Zone liegt die Liegenschaft an der Josefstrasse 218?",
+            "Gib mir eine Liste von vorhandenen Zonen zusammen mit ihrer Bedeutung und ergänze eine Spalte für die Flächensummen pro Zonentyp.",            
+            "In welchem Zonentyp liegt die Adresse Josefstrasse 218 (?",
+            "Wie hoch darf ich in der Zentrumszone Z5 bauen?",
           ];
         }
 

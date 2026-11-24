@@ -55,17 +55,19 @@
             <arcgis-layer-list ></arcgis-layer-list>
           </arcgis-expand>          
           <calcite-button id="toggle-code-dialog" icon-start="code" appearance="outline-fill" slot="top-left"></calcite-button>
+          <calcite-button id="toggle-coldesc" icon-start="table" appearance="outline-fill" slot="top-left" ></calcite-button>
         </arcgis-map>
-        <arcgis-feature-table style="height: 300px;" layer-url="https://services.arcgis.com/h4GV7Mzy9qkszeGb/arcgis/rest/services/Bzo_Zh_Poly/FeatureServer"
+        <arcgis-feature-table id="ftable" style="height: 450px;"           
+          map-layer-id = "1a1f4b90958-layer-42"
           reference-element="zpl-map"
           show-layer-dropdown          
           hide-selection-column
+          hide-column-descriptions
         ></arcgis-feature-table>
         <calcite-shell-panel slot="panel-end" width="l" id="assistant-panel">
           <calcite-panel>
             <arcgis-assistant
-              log-enabled
-              copy-enabled
+              log-enabled              
               reference-element="#zpl-map"
               heading="Bauzonen und Liegenschaften der Stadt ZH"
               description="Bauzonen analysieren"
@@ -89,6 +91,11 @@
       function toggleDialog() {
         const dialog = document.querySelector("#code-dialog");
         dialog.open = !dialog.open;
+      }
+
+      function toggleColdesc() {
+        const featureTable = document.querySelector("#ftable");
+        featureTable.hideColumnDescriptions = !featureTable.hideColumnDescriptions;
       }
 
       function showError(message, error) {
@@ -118,6 +125,9 @@
           retryButton.remove();
           document.body.append(document.querySelector("#app-template").content.cloneNode(true));
           document.querySelector("#toggle-code-dialog").addEventListener("click", toggleDialog);
+          document.querySelector("#toggle-coldesc")
+  .addEventListener("click", toggleColdesc);
+          
           customElements.whenDefined("arcgis-code-editor").then(() => {
             document.querySelector("#value-picker-snippets").editorOptions = {
               wordWrap: "on",
@@ -126,7 +136,7 @@
           });
           document.querySelector("arcgis-assistant").suggestedPrompts = [
             "Gib mir eine Liste von vorhandenen Zonen zusammen mit ihrer Bezeichnung",
-            "Wie gross ist die Fläche von allen Freihaltezonen",
+            "Wie gross ist die Fläche von allen Freihaltezonen?",
             "In welcher Zone liegt die Liegenschaft an der Josefstrasse 218?",
           ];
         }

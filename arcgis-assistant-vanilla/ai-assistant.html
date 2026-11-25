@@ -53,6 +53,7 @@
           <calcite-button id="toggle-code-dialog" icon-start="code" appearance="outline-fill" slot="top-right"></calcite-button>
           <calcite-button id="reset-symbology" icon-start="reset" appearance="outline-fill" slot="top-left" disabled></calcite-button>          
           <calcite-button id="toggle-table" icon-start="table" appearance="outline-fill" slot="top-left" label="Attributtabelle ein-/ausblenden" aria-controls="ftable" aria-expanded="true"></calcite-button>
+          <arcgis-basemap-toggle slot="bottom-left" next-basemap="satellite"></arcgis-basemap-toggle>
           <calcite-button id="toggle-table-desc" icon-start="metadata" appearance="outline-fill" slot="top-left"></calcite-button>
         </arcgis-map>
         <arcgis-feature-table id="ftable" style="height: 450px;"
@@ -147,6 +148,7 @@
           const resetButton = document.querySelector("#reset-symbology");
           customElements.whenDefined("arcgis-map").then(async () => {
             await mapElement.viewOnReady();
+            mapElement.constraints.snapToZoom = false;
             const originalEffects = await Promise.all(
               mapElement.map.allLayers
                 .filter((layer) => layer.type === "feature")
@@ -162,6 +164,19 @@
               }
             });
             resetButton.disabled = false;
+
+            // Start on the extent of all zones instead of the webmap's saved viewpoint.
+            try {
+              const zonesLayer = mapElement.map.findLayerById("1a1f4b90958-layer-42");
+              if (zonesLayer) {
+                const { extent } = await zonesLayer.queryExtent();
+                if (extent) {
+                  await mapElement.goTo(extent);
+                }
+              }
+            } catch (error) {
+              console.error("Could not zoom to the zones layer extent.", error);
+            }
           }).catch((error) => {
             console.error("Could not prepare original layer effects.", error);
             document.querySelector("#symbology-error").open = true;

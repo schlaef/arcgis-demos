@@ -9,21 +9,16 @@
     <style>
       #code-dialog {
         padding:5px;
-        /* --calcite-dialog-min-size-x: min(300px, calc(100vw - 3rem));
-        --calcite-dialog-max-size-x: min(300px, calc(100vw - 3rem));
-        --calcite-dialog-min-size-y: min(400px, calc(100vh - 3rem));
-        --calcite-dialog-max-size-y: min(400px, calc(100vh - 3rem)); */
       }
 
       #value-picker-snippets {
         box-sizing: border-box;
-        height: min(10rem, calc(100vh - 7rem));
+        height: 2rem;
+        max-height: calc(100dvh - 7rem);
       }
 
-      @media (max-width: 600px) {
-        #value-picker-snippets {
-          height: min(20rem, calc(100vh - 7rem));
-        }
+      #ftable[hidden] {
+        display: none;
       }
     </style>
   </head>
@@ -38,7 +33,8 @@
          id="code-dialog" width="m" slot="dialogs">
           
                     <arcgis-code-editor style="padding: 5px;" id="value-picker-snippets" language="html" 
-                    value='<arcgis-assistant
+                    value='<arcgis-map id="zpl-map"/> 
+<arcgis-assistant reference-element="#zpl-map"
     heading="Bauzonen und Liegenschaften der Stadt ZH"
     entry-message="Hallo, ich kann Bauzonen auffinden, Statistiken abfragen und Symbologien ändern">
     <arcgis-assistant-navigation-agent/>
@@ -49,13 +45,15 @@
 
         </calcite-dialog> 
         <arcgis-map id="zpl-map" item-id="617e7ab0f3894c7493d09277ecd5c908">
-          <arcgis-zoom slot="top-left"></arcgis-zoom>          
-            <arcgis-legend slot="bottom-left" ></arcgis-legend>            
-          <arcgis-expand slot="top-left">
+          <!-- <arcgis-zoom slot="top-left"></arcgis-zoom>           -->
+            <!-- <arcgis-legend slot="bottom-left" ></arcgis-legend>             -->
+          <!-- <arcgis-expand slot="top-left">
             <arcgis-layer-list ></arcgis-layer-list>
-          </arcgis-expand>          
+          </arcgis-expand>           -->
           <calcite-button id="toggle-code-dialog" icon-start="code" appearance="outline-fill" slot="top-right"></calcite-button>
-          <calcite-button id="reset-symbology" icon-start="reset" appearance="outline-fill" slot="top-left" disabled></calcite-button>
+          <calcite-button id="reset-symbology" icon-start="reset" appearance="outline-fill" slot="top-left" disabled></calcite-button>          
+          <calcite-button id="toggle-table" icon-start="table" appearance="outline-fill" slot="top-left" label="Attributtabelle ein-/ausblenden" aria-controls="ftable" aria-expanded="true"></calcite-button>
+          <calcite-button id="toggle-table-desc" icon-start="metadata" appearance="outline-fill" slot="top-left"></calcite-button>
         </arcgis-map>
         <arcgis-feature-table id="ftable" style="height: 450px;"
           map-layer-id = "1a1f4b90958-layer-42"
@@ -64,6 +62,9 @@
           hide-selection-column
           hide-column-descriptions
           hide-column-visibility-menu
+          hide-menu
+          hidden
+          
         ></arcgis-feature-table>
         <calcite-shell-panel resizable slot="panel-end" width="l" id="assistant-panel">
           <calcite-panel>
@@ -104,6 +105,12 @@
         featureTable.hideColumnDescriptions = !featureTable.hideColumnDescriptions;
       }
 
+      function toggleTable() {
+        const featureTable = document.querySelector("#ftable");
+        featureTable.hidden = !featureTable.hidden;
+        document.querySelector("#toggle-table").setAttribute("aria-expanded", String(!featureTable.hidden));
+      }
+
       function showError(message, error) {
         console.error(message, error);
         status.textContent = message;
@@ -131,15 +138,10 @@
           retryButton.remove();
           document.body.append(document.querySelector("#app-template").content.cloneNode(true));
           document.querySelector("#toggle-code-dialog").addEventListener("click", toggleDialog);
-          customElements.whenDefined("arcgis-feature-table").then(() => {
-            document.querySelector("#ftable").menuConfig = {
-              items: [{
-                label: "Spaltenbeschreibungen ein-/ausblenden",
-                icon: "table",
-                clickFunction: toggleColdesc,
-              }],
-            };
-          });
+          document.querySelector("#toggle-table-desc").addEventListener("click", toggleColdesc);
+          document.querySelector("#toggle-table").addEventListener("click", toggleTable);
+          
+          
 
           const mapElement = document.querySelector("#zpl-map");
           const resetButton = document.querySelector("#reset-symbology");
@@ -165,13 +167,30 @@
             document.querySelector("#symbology-error").open = true;
           });
           
-          customElements.whenDefined("arcgis-code-editor").then(() => {
-            document.querySelector("#value-picker-snippets").editorOptions = {
+          customElements.whenDefined("arcgis-code-editor").then(async () => {
+            const codeEditor = document.querySelector("#value-picker-snippets");
+            codeEditor.editorOptions = {
               wordWrap: "on",
               scrollBeyondLastLine: false,
             };
+            await codeEditor.componentOnReady();
+            const editor = codeEditor.editorInstance;
+            const fitEditor = () => {
+              codeEditor.style.height = `${editor.getContentHeight() + 10}px`;
+            };
+            editor.onDidContentSizeChange((event) => {
+              if (event.contentHeightChanged) {
+                fitEditor();
+              }
+            });
+            document.querySelector("#code-dialog").addEventListener("calciteDialogOpen", () => {
+              editor.layout();
+              fitEditor();
+            });
+            fitEditor();
           });
           document.querySelector("arcgis-assistant").suggestedPrompts = [
+            "Hebe alle Wohnzonen hervor",
             "Gib mir eine Liste von vorhandenen Zonen zusammen mit ihrer Bedeutung und ergänze eine Spalte für die Flächensummen pro Zonentyp.",            
             "In welchem Zonentyp liegt die Adresse Josefstrasse 218? Highlighte die Zone",
             "Wie gross ist die Grünflächenziffer in W4?",

@@ -38,7 +38,9 @@
          id="code-dialog" width="m" slot="dialogs">
           
                     <arcgis-code-editor style="padding: 5px;" id="value-picker-snippets" language="html" 
-                    value='<arcgis-assistant>
+                    value='<arcgis-assistant
+    heading="Bauzonen und Liegenschaften der Stadt ZH"
+    entry-message="Hallo, ich kann Bauzonen auffinden, Statistiken abfragen und Symbologien ändern">
     <arcgis-assistant-navigation-agent/>
     <arcgis-assistant-data-exploration-agent/>
     <arcgis-assistant-help-agent/>
@@ -47,14 +49,12 @@
 
         </calcite-dialog> 
         <arcgis-map id="zpl-map" item-id="617e7ab0f3894c7493d09277ecd5c908">
-          <arcgis-zoom slot="top-left"></arcgis-zoom>
-          <arcgis-expand slot="top-left">
-            <arcgis-legend ></arcgis-legend>            
-          </arcgis-expand>
+          <arcgis-zoom slot="top-left"></arcgis-zoom>          
+            <arcgis-legend slot="bottom-left" ></arcgis-legend>            
           <arcgis-expand slot="top-left">
             <arcgis-layer-list ></arcgis-layer-list>
           </arcgis-expand>          
-          <calcite-button id="toggle-code-dialog" icon-start="code" appearance="outline-fill" slot="top-left"></calcite-button>
+          <calcite-button id="toggle-code-dialog" icon-start="code" appearance="outline-fill" slot="top-right"></calcite-button>
           <calcite-button id="reset-symbology" icon-start="reset" appearance="outline-fill" slot="top-left" disabled></calcite-button>
         </arcgis-map>
         <arcgis-feature-table id="ftable" style="height: 450px;"
@@ -65,7 +65,7 @@
           hide-column-descriptions
           hide-column-visibility-menu
         ></arcgis-feature-table>
-        <calcite-shell-panel slot="panel-end" width="l" id="assistant-panel">
+        <calcite-shell-panel resizable slot="panel-end" width="l" id="assistant-panel">
           <calcite-panel>
             <calcite-notice id="symbology-error" kind="danger" icon>
               <div slot="message">Die Originaldarstellung konnte nicht vorbereitet werden. Bitte die Seite neu laden.</div>
@@ -77,7 +77,7 @@
               reference-element="#zpl-map"
               heading="Bauzonen und Liegenschaften der Stadt ZH"
               description="Bauzonen analysieren"
-              entry-message="Hallo, ich kann helfen die Zonen aufzufinden und zu vergleichen"
+              entry-message="Hallo, ich kann Bauzonen auffinden, Statistiken abfragen und Symbologien ändern"
             >
               <arcgis-assistant-navigation-agent/>
               <arcgis-assistant-data-exploration-agent/>
@@ -173,8 +173,8 @@
           });
           document.querySelector("arcgis-assistant").suggestedPrompts = [
             "Gib mir eine Liste von vorhandenen Zonen zusammen mit ihrer Bedeutung und ergänze eine Spalte für die Flächensummen pro Zonentyp.",            
-            "In welchem Zonentyp liegt die Adresse Josefstrasse 218 (?",
-            "Wie hoch darf ich in der Zentrumszone Z5 bauen?",
+            "In welchem Zonentyp liegt die Adresse Josefstrasse 218? Highlighte die Zone",
+            "Wie gross ist die Grünflächenziffer in W4?",
           ];
         }
 
